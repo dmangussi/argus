@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# uv
+uv.lock
+
+# Env
+.env
+.env.local
+*.env
+
+# Dados sensíveis
+products.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code
+CLAUDE.local.md
+.claude/local/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Node / Next.js
+web/node_modules/
+web/.next/
+web/.env.local
+
+# OS
+.DS_Store
+Thumbs.db

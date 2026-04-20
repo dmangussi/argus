@@ -1,0 +1,18 @@
+services:
+  scraper:
+    build: .
+    container_name: argus-scraper
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - .:/app   # código montado em tempo de execução — sem rebuild para mudanças no .py ou .yaml
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
