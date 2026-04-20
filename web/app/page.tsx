@@ -41,8 +41,11 @@ function relativeTime(date: Date | null): string {
 function VariationBadge({ pct }: { pct: string | null }) {
   if (pct === null) {
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 font-medium">
-        —
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-400">
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
       </span>
     );
   }
@@ -62,9 +65,10 @@ function VariationBadge({ pct }: { pct: string | null }) {
 }
 
 function ProductCard({ product }: { product: Product }) {
-  const price = product.current_price
-    ? `R$ ${parseFloat(product.current_price).toFixed(2).replace(".", ",")}`
-    : "—";
+  const hasPrice = product.current_price !== null;
+  const price = hasPrice
+    ? `R$ ${parseFloat(product.current_price!).toFixed(2).replace(".", ",")}`
+    : null;
 
   return (
     <a
@@ -85,7 +89,17 @@ function ProductCard({ product }: { product: Product }) {
           {product.name}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-slate-900">{price}</span>
+          {price ? (
+            <span className="text-xl font-bold text-slate-900">{price}</span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs text-blue-500 font-medium">
+              Ver no site
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
+          )}
           <VariationBadge pct={product.variation_7d_pct} />
         </div>
         <p className="text-xs text-slate-400 mt-1.5">
@@ -131,7 +145,7 @@ export default async function HomePage() {
               <p className="text-xs font-medium text-slate-600">{relativeTime(lastUpdate)}</p>
             </div>
             <a href="/admin" title="Admin" className="text-slate-400 hover:text-blue-600 transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="white"/>
                 <line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="white"/>
                 <line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="white"/>
