@@ -13,6 +13,7 @@
     "react-dom": "^19",
     "postgres": "^3.4"
   },
+  "engines": { "node": "22.x" },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^19",
