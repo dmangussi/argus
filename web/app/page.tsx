@@ -114,9 +114,15 @@ export default async function HomePage() {
       <header className="sticky top-0 z-10 bg-white border-b border-slate-100 shadow-sm">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-emerald-600 leading-none">🛒 Argus</h1>
+            <h1 className="text-lg font-bold text-blue-600 leading-none flex items-center gap-1.5">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Argus
+            </h1>
             <p className="text-xs text-slate-400 mt-0.5">
-              Supermercado · {products.length} produto{products.length !== 1 ? "s" : ""}
+              {products.length} produto{products.length !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -124,8 +130,12 @@ export default async function HomePage() {
               <p className="text-xs text-slate-400">última coleta</p>
               <p className="text-xs font-medium text-slate-600">{relativeTime(lastUpdate)}</p>
             </div>
-            <a href="/admin" className="text-xs text-slate-400 hover:text-emerald-600 transition-colors">
-              Admin
+            <a href="/admin" title="Admin" className="text-slate-400 hover:text-blue-600 transition-colors">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="white"/>
+                <line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="white"/>
+                <line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="white"/>
+              </svg>
             </a>
           </div>
         </div>
@@ -157,7 +167,7 @@ export default async function HomePage() {
       </main>
 
       <footer className="max-w-lg mx-auto px-4 py-6 text-center">
-        <p className="text-xs text-slate-300">Argus · Supermercado</p>
+        <p className="text-xs text-slate-300">Argus</p>
       </footer>
     </div>
   );

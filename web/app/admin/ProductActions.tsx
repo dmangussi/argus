@@ -21,9 +21,14 @@ export default function ProductActions({ products = [], logoutOnly = false }: Pr
     return (
       <button
         onClick={handleLogout}
-        className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+        title="Sair"
+        className="text-slate-400 hover:text-red-500 transition-colors"
       >
-        Sair
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
       </button>
     );
   }
@@ -72,13 +77,13 @@ function AddProductForm({ onAdded }: { onAdded: () => void }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           required
-          className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         {error && <p className="text-xs text-red-500">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl py-2 text-sm transition-colors disabled:opacity-50"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl py-2 text-sm transition-colors disabled:opacity-50"
         >
           {loading ? "Salvando..." : "Adicionar"}
         </button>
@@ -145,7 +150,7 @@ function ProductList({ products, onChanged }: { products: Product[]; onChanged: 
             <div className="min-w-0">
               <p className="text-sm font-medium text-slate-800 leading-snug">{p.name}</p>
               <p className="text-xs text-slate-400 mt-0.5">
-                {p.category ?? "Sem categoria"} · <code className="bg-slate-100 px-1 rounded">{p.price_selector ?? ".preco"}</code>
+                {p.category ?? "Sem categoria"}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -154,7 +159,7 @@ function ProductList({ products, onChanged }: { products: Product[]; onChanged: 
                 disabled={loading[p.id]}
                 className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${
                   p.is_active
-                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
                     : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                 }`}
               >

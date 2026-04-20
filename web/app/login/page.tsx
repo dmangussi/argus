@@ -12,7 +12,7 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -35,7 +35,13 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        <h1 className="text-xl font-bold text-emerald-600 mb-1">🛒 Argus</h1>
+        <h1 className="text-xl font-bold text-blue-600 mb-1 flex items-center gap-1.5">
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          Argus
+        </h1>
         <p className="text-sm text-slate-400 mb-6">Digite a senha para continuar</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -46,7 +52,7 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoFocus
-            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
 
           {error && (
@@ -56,7 +62,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors disabled:opacity-50"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors disabled:opacity-50"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>
