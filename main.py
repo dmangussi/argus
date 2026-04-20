@@ -105,10 +105,9 @@ def _print_results(results: list[tuple[str, float | None]]) -> None:
 
 
 async def run_once() -> None:
-    seed_products()  # sincroniza products.yaml → banco antes de cada coleta
     products = notify.fetch_products()
     if not products:
-        log.warning("Nenhum produto ativo. Rode: python main.py --seed")
+        log.warning("Nenhum produto ativo. Adicione produtos em /admin ou rode: python main.py --seed")
         return
 
     log.info("Iniciando coleta de %d produtos", len(products))
@@ -119,18 +118,23 @@ async def run_once() -> None:
     async with sc.Scraper(headless=HEADLESS, delay_min=DELAY_MIN, delay_max=DELAY_MAX) as scraper:
 
         async def process(product: dict[str, Any]) -> None:
+            log.info("[→] Iniciando: %s", product["name"])
             async with sem:
                 result = await scraper.scrape(
                     product["product_url"],
                     product.get("price_selector") or "",
                 )
-            results.append((product["name"], result[0] if result else None))
             if result is None:
+                log.warning("[✗] Falhou: %s", product["name"])
+                results.append((product["name"], None))
                 return
             price, image_url = result
+            log.info("[✓] Coletado: %-30s R$ %.2f", product["name"], price)
+            results.append((product["name"], price))
             notify.save_price(product["id"], price)
             if image_url and not product.get("image_url"):
                 notify.update_product_image(product["id"], image_url)
+                log.info("[img] Imagem salva: %s", product["name"])
             history = notify.recent_prices(product["id"])
             alert = analyze(product, price, history)
             if alert:

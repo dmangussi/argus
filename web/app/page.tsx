@@ -119,9 +119,14 @@ export default async function HomePage() {
               Supermercado · {products.length} produto{products.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-slate-400">última coleta</p>
-            <p className="text-xs font-medium text-slate-600">{relativeTime(lastUpdate)}</p>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs text-slate-400">última coleta</p>
+              <p className="text-xs font-medium text-slate-600">{relativeTime(lastUpdate)}</p>
+            </div>
+            <a href="/admin" className="text-xs text-slate-400 hover:text-emerald-600 transition-colors">
+              Admin
+            </a>
           </div>
         </div>
       </header>
