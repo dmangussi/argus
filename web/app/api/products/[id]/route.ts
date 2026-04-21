@@ -52,12 +52,6 @@ export async function DELETE(
   const { id } = await params;
   const sql = postgres(process.env.DATABASE_URL!);
   try {
-    const [{ count }] = await sql`
-      SELECT COUNT(*)::int AS count FROM price_history WHERE product_id = ${id}::uuid
-    `;
-    if (count > 0) {
-      return NextResponse.json({ error: "Produto tem histórico de preços" }, { status: 409 });
-    }
     await sql`DELETE FROM products WHERE id = ${id}::uuid`;
     return new NextResponse(null, { status: 204 });
   } finally {

@@ -1,8 +1,57 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Product } from "./page";
+
+function ConfirmModal({
+  product,
+  onConfirm,
+  onCancel,
+}: {
+  product: Product;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+            <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">Excluir produto</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              <span className="font-medium text-slate-700">{product.name}</span> será removido permanentemente, incluindo todo o histórico de preços.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-3 pt-1">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2 rounded-xl text-sm font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CATEGORIES = [
   "Hortifruti",
@@ -60,7 +109,7 @@ function AddProductForm({ onAdded }: { onAdded: () => void }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -118,9 +167,9 @@ function AddProductForm({ onAdded }: { onAdded: () => void }) {
 }
 
 function ProductList({ products, onChanged }: { products: Product[]; onChanged: () => void }) {
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [collapsed, setCollapsed] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
 
   async function handleToggle(p: Product) {
     setLoading((l) => ({ ...l, [p.id]: true }));
@@ -150,17 +199,12 @@ function ProductList({ products, onChanged }: { products: Product[]; onChanged: 
     onChanged();
   }
 
-  async function handleDelete(p: Product) {
+  async function confirmDelete(p: Product) {
+    setPendingDelete(null);
     setLoading((l) => ({ ...l, [p.id]: true }));
-    setErrors((e) => ({ ...e, [p.id]: "" }));
-    const res = await fetch(`/api/products/${p.id}`, { method: "DELETE" });
-    if (res.status === 409) {
-      const data = await res.json();
-      setErrors((e) => ({ ...e, [p.id]: data.error }));
-    } else {
-      onChanged();
-    }
+    await fetch(`/api/products/${p.id}`, { method: "DELETE" });
     setLoading((l) => ({ ...l, [p.id]: false }));
+    onChanged();
   }
 
   if (products.length === 0) {
@@ -223,7 +267,7 @@ function ProductList({ products, onChanged }: { products: Product[]; onChanged: 
                 {p.is_active ? "Ativo" : "Inativo"}
               </button>
               <button
-                onClick={() => handleDelete(p)}
+                onClick={() => setPendingDelete(p)}
                 disabled={loading[p.id]}
                 className="text-xs px-3 py-1 rounded-full font-medium bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
               >
@@ -231,11 +275,16 @@ function ProductList({ products, onChanged }: { products: Product[]; onChanged: 
               </button>
             </div>
           </div>
-          {errors[p.id] && (
-            <p className="text-xs text-red-500 mt-2">{errors[p.id]}</p>
-          )}
         </div>
       ))}
+      {pendingDelete && createPortal(
+        <ConfirmModal
+          product={pendingDelete}
+          onConfirm={() => confirmDelete(pendingDelete)}
+          onCancel={() => setPendingDelete(null)}
+        />,
+        document.body
+      )}
     </div>
   );
 }

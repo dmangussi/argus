@@ -20,7 +20,7 @@ function nameFromUrl(product_url: string): string {
         .replace(/\+/g, " ")
         .replace(/\s+/g, " ")
         .trim()
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+        .split(" ").map((w) => w ? w[0].toUpperCase() + w.slice(1) : w).join(" ");
     }
     return url.hostname.replace(/^www\./, "");
   } catch {
