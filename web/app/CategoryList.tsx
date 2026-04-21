@@ -104,6 +104,7 @@ function VariationBadge({ pct }: { pct: string | null }) {
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const [nameExpanded, setNameExpanded] = useState(false);
   const hasPrice = product.current_price !== null;
   const price = hasPrice
     ? parseFloat(product.current_price!).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -139,7 +140,10 @@ function ProductCard({ product }: { product: Product }) {
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-zinc-800 leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors">
+        <p
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNameExpanded((v) => !v); }}
+          className={`text-sm font-semibold text-zinc-800 leading-snug group-hover:text-indigo-700 transition-colors cursor-pointer ${nameExpanded ? "" : "line-clamp-2"}`}
+        >
           {product.name}
         </p>
         <div className="flex items-center gap-1 mt-1">
