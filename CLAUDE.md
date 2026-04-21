@@ -8,30 +8,54 @@ Monitor de preços com alertas por e-mail quando houver variação relevante (qu
 - **Playwright** (async, Chromium headless) para scraping
 - **Vercel Postgres** (Neon) — free tier
 - **Resend** para envio de e-mail (3k/mês free) — futuro
+- **Next.js 15** (App Router) — frontend + admin
 - **Docker Compose** + **APScheduler** para cron local
 
 ## Estrutura
 
 ```
 argus/
-├── main.py            # orquestra tudo: seed, scraping, análise, scheduler, config
+├── main.py            # scraping, análise de variação, scheduler
 ├── scraper.py         # Playwright scraping
 ├── notify.py          # Vercel Postgres (DB) + Resend (e-mail, futuro)
-├── products.yaml      # lista de produtos monitorados
 ├── pyproject.toml
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env.example
-└── migration.sql      # aplicar manualmente no SQL Editor do Vercel Postgres
+├── migration.sql      # aplicar manualmente no SQL Editor do Vercel Postgres
+└── web/               # Next.js frontend
+    └── app/
+        ├── page.tsx              # página pública — lista por categoria
+        ├── CategoryList.tsx      # client component: expand/collapse por categoria
+        ├── PageWrapper.tsx       # client component: animação de transição entre páginas
+        ├── layout.tsx            # layout raiz
+        ├── globals.css           # estilos globais + keyframe page-in
+        ├── admin/
+        │   ├── page.tsx          # página do admin (server component)
+        │   └── ProductActions.tsx # formulário + lista de produtos com edição de categoria
+        ├── login/page.tsx
+        └── api/
+            ├── auth/route.ts
+            └── products/
+                ├── route.ts        # POST — criar produto
+                └── [id]/route.ts   # PATCH (parcial) + DELETE
 ```
+
+## Produtos e categorias
+
+Produtos são gerenciados **inteiramente pelo banco de dados** via `/admin`. Não existe mais `products.yaml`.
+
+Categorias disponíveis (lista fixa definida em `ProductActions.tsx`):
+`Hortifruti` · `Padaria` · `Açougue` · `Laticínios e Frios` · `Mercearia` · `Congelados` · `Bebidas` · `Higiene` · `Limpeza` · `Pet Shop`
 
 ## Convenções
 
 - **Type hints** em toda função pública.
 - **Async-first**: scraping e HTTP usam `async/await`.
 - **Sem `print()`** em produção — use `logging`.
-- **Seletores CSS** ficam em `products.yaml`, nunca hardcoded no Python.
+- **Seletores CSS** dos produtos ficam no banco de dados (coluna `price_selector`), nunca hardcoded no Python.
 - **Defensive scraping**: `scrape()` retorna `None` em falha — não propaga exceção.
+- **PATCH parcial**: a rota `/api/products/[id]` aceita qualquer subconjunto dos campos — faz SELECT + merge antes do UPDATE.
 
 ## Comandos úteis
 
@@ -39,10 +63,12 @@ argus/
 # Setup (tudo via Docker, sem precisar de Python local)
 cp .env.example .env
 # Cole POSTGRES_URL_NON_POOLING do Vercel como DATABASE_URL no .env
-docker compose up --build -d                              # sobe o scheduler
-docker compose run --rm scraper python main.py --seed     # popula banco (1x ou ao mudar products.yaml)
-docker compose logs -f scraper                            # acompanha logs
-docker compose run --rm scraper python main.py --once     # disparo manual
+docker compose up --build -d                          # sobe o scheduler
+docker compose logs -f scraper                        # acompanha logs
+docker compose run --rm scraper python main.py --once # disparo manual
+
+# Frontend local
+cd web && npm run dev                                 # http://localhost:3000
 ```
 
 ## O que NÃO fazer (MVP)
@@ -51,6 +77,7 @@ docker compose run --rm scraper python main.py --once     # disparo manual
 - Não implementar multi-usuário
 - Não adicionar WhatsApp/push/SMS — só e-mail
 - Não monitorar múltiplos supermercados
+- Não reintroduzir `products.yaml` — produtos vivem no banco
 
 ## Plan Mode
 

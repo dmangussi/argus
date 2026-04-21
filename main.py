@@ -1,7 +1,6 @@
 """Argus — monitor de preços.
 
 Modos:
-    python main.py --seed      # sincroniza products.yaml → banco
     python main.py --once      # coleta uma vez e sai
     python main.py --schedule  # roda o scheduler (padrão no Docker)
 """
@@ -12,10 +11,8 @@ import argparse
 import asyncio
 import logging
 import os
-from pathlib import Path
 from typing import Any
 
-import yaml
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
@@ -37,33 +34,9 @@ RISE_THRESHOLD  = float(os.getenv("ALERT_RISE_THRESHOLD", "10"))
 MIN_HISTORY     = int(os.getenv("ALERT_MIN_HISTORY_POINTS", "3"))
 LOG_LEVEL       = os.getenv("LOG_LEVEL", "INFO")
 
-TIMEZONE      = "America/Sao_Paulo"
-PRODUCTS_YAML = Path(__file__).parent / "products.yaml"
+TIMEZONE = "America/Sao_Paulo"
 
 log = logging.getLogger(__name__)
-
-
-# --- Seed ---
-def seed_products() -> None:
-    data = yaml.safe_load(PRODUCTS_YAML.read_text(encoding="utf-8")) or {}
-    products = data.get("products", [])
-    if not products:
-        log.warning("products.yaml vazio ou sem chave 'products'")
-        return
-    payload = [
-        {
-            "slug": p["slug"],
-            "name": p["name"],
-            "category": p.get("category"),
-            "product_url": p["product_url"],
-            "price_selector": p.get("price_selector"),
-            "is_active": True,
-        }
-        for p in products
-        if "slug" in p and "name" in p and "product_url" in p
-    ]
-    notify.upsert_products(payload)
-    log.info("✓ %d produtos sincronizados com o banco", len(payload))
 
 
 # --- Análise de variação ---
@@ -184,14 +157,11 @@ def main() -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     parser = argparse.ArgumentParser(description="Argus — monitor de preços")
-    parser.add_argument("--seed", action="store_true", help="Sincroniza products.yaml → banco")
     parser.add_argument("--once", action="store_true", help="Coleta uma vez e sai")
     parser.add_argument("--schedule", action="store_true", help="Inicia o scheduler (padrão Docker)")
     args = parser.parse_args()
 
-    if args.seed:
-        seed_products()
-    elif args.schedule:
+    if args.schedule:
         run_scheduler()
     else:
         asyncio.run(run_once())

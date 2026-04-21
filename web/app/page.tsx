@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import CategoryList from "./CategoryList";
 
 export const dynamic = "force-dynamic";
 
@@ -36,79 +37,6 @@ function relativeTime(date: Date | null): string {
   const diffH = Math.floor(diffMin / 60);
   if (diffH < 24) return `há ${diffH}h`;
   return `há ${Math.floor(diffH / 24)} dias`;
-}
-
-function VariationBadge({ pct }: { pct: string | null }) {
-  if (pct === null) {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-400">
-        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </span>
-    );
-  }
-  const value = parseFloat(pct);
-  const isDrop = value < 0;
-  return (
-    <span
-      className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-        isDrop
-          ? "bg-green-100 text-green-700"
-          : "bg-red-100 text-red-600"
-      }`}
-    >
-      {isDrop ? "↓" : "↑"} {Math.abs(value).toFixed(1)}%
-    </span>
-  );
-}
-
-function ProductCard({ product }: { product: Product }) {
-  const hasPrice = product.current_price !== null;
-  const price = hasPrice
-    ? `R$ ${parseFloat(product.current_price!).toFixed(2).replace(".", ",")}`
-    : null;
-
-  return (
-    <a
-      href={product.product_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex gap-3 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 hover:shadow-md transition-shadow active:scale-[0.98]"
-    >
-      {product.image_url && (
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-16 h-16 object-contain rounded-xl shrink-0 bg-slate-50"
-        />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 leading-snug mb-2 line-clamp-2">
-          {product.name}
-        </p>
-        <div className="flex items-center justify-between">
-          {price ? (
-            <span className="text-xl font-bold text-slate-900">{price}</span>
-          ) : (
-            <span className="flex items-center gap-1 text-xs text-blue-500 font-medium">
-              Ver no site
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </span>
-          )}
-          <VariationBadge pct={product.variation_7d_pct} />
-        </div>
-        <p className="text-xs text-slate-400 mt-1.5">
-          {relativeTime(product.last_updated)}
-          {product.variation_7d_pct !== null && " · vs 7 dias atrás"}
-        </p>
-      </div>
-    </a>
-  );
 }
 
 export default async function HomePage() {
@@ -165,18 +93,7 @@ export default async function HomePage() {
             </p>
           </div>
         ) : (
-          Object.entries(byCategory).map(([category, items]) => (
-            <section key={category}>
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 px-1">
-                {category}
-              </h2>
-              <div className="space-y-3">
-                {items.map((p) => (
-                  <ProductCard key={p.name} product={p} />
-                ))}
-              </div>
-            </section>
-          ))
+          <CategoryList byCategory={byCategory} />
         )}
       </main>
 
