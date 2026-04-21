@@ -8,12 +8,16 @@
     "start": "next start"
   },
   "dependencies": {
+    "geist": "^1.7.0",
+    "lucide-react": "^1.8.0",
     "next": "^15",
+    "postgres": "^3.4",
     "react": "^19",
-    "react-dom": "^19",
-    "postgres": "^3.4"
+    "react-dom": "^19"
   },
-  "engines": { "node": "24.x" },
+  "engines": {
+    "node": "24.x"
+  },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^19",

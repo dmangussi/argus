@@ -1,6 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import {
+  ChevronDown,
+  ChevronsUpDown,
+  TrendingDown,
+  TrendingUp,
+  Clock,
+  ExternalLink,
+  Minus,
+  PackageSearch,
+} from "lucide-react";
 
 type Product = {
   name: string;
@@ -12,33 +22,54 @@ type Product = {
   image_url: string | null;
 };
 
+const CATEGORY_COLORS: Record<string, string> = {
+  "Hortifruti":      "bg-emerald-400",
+  "Padaria":         "bg-amber-400",
+  "Açougue":         "bg-red-400",
+  "Laticínios e Frios": "bg-sky-400",
+  "Mercearia":       "bg-orange-400",
+  "Congelados":      "bg-cyan-400",
+  "Bebidas":         "bg-blue-400",
+  "Higiene":         "bg-pink-400",
+  "Limpeza":         "bg-teal-400",
+  "Pet Shop":        "bg-purple-400",
+  "Outros":          "bg-zinc-400",
+};
+
 function relativeTime(date: Date | null): string {
-  if (!date) return "nunca coletado";
+  if (!date) return "nunca";
   const diffMs = Date.now() - new Date(date).getTime();
   const diffMin = Math.floor(diffMs / 60_000);
-  if (diffMin < 1) return "agora mesmo";
-  if (diffMin < 60) return `há ${diffMin} min`;
+  if (diffMin < 1) return "agora";
+  if (diffMin < 60) return `${diffMin} min`;
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `há ${diffH}h`;
-  return `há ${Math.floor(diffH / 24)} dias`;
+  if (diffH < 24) return `${diffH}h`;
+  return `${Math.floor(diffH / 24)}d`;
 }
 
 function VariationBadge({ pct }: { pct: string | null }) {
   if (pct === null) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-400">
-        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-zinc-100 text-zinc-400 text-xs font-medium">
+        <Minus className="w-3 h-3" />
       </span>
     );
   }
   const value = parseFloat(pct);
   const isDrop = value < 0;
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDrop ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-      {isDrop ? "↓" : "↑"} {Math.abs(value).toFixed(1)}%
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+        isDrop
+          ? "bg-emerald-50 text-emerald-700"
+          : "bg-rose-50 text-rose-600"
+      }`}
+    >
+      {isDrop
+        ? <TrendingDown className="w-3 h-3" />
+        : <TrendingUp className="w-3 h-3" />
+      }
+      {Math.abs(value).toFixed(1)}%
     </span>
   );
 }
@@ -46,7 +77,7 @@ function VariationBadge({ pct }: { pct: string | null }) {
 function ProductCard({ product }: { product: Product }) {
   const hasPrice = product.current_price !== null;
   const price = hasPrice
-    ? `R$ ${parseFloat(product.current_price!).toFixed(2).replace(".", ",")}`
+    ? parseFloat(product.current_price!).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
     : null;
 
   return (
@@ -54,37 +85,45 @@ function ProductCard({ product }: { product: Product }) {
       href={product.product_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex gap-3 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 hover:shadow-md transition-shadow active:scale-[0.98]"
+      className="group flex items-center gap-3 bg-white rounded-2xl border border-zinc-200 p-3.5 hover:border-indigo-200 hover:shadow-card-hover transition-all duration-200 active:scale-[0.98]"
     >
-      {product.image_url && (
+      {/* Image */}
+      {product.image_url ? (
         <img
           src={product.image_url}
           alt={product.name}
-          className="w-16 h-16 object-contain rounded-xl shrink-0 bg-slate-50"
+          className="w-16 h-16 object-contain rounded-xl shrink-0 bg-zinc-50 border border-zinc-100"
         />
+      ) : (
+        <div className="w-16 h-16 rounded-xl shrink-0 bg-zinc-50 border border-zinc-100 flex items-center justify-center">
+          <PackageSearch className="w-6 h-6 text-zinc-300" strokeWidth={1.5} />
+        </div>
       )}
+
+      {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 leading-snug mb-2 line-clamp-2">
+        <p className="text-sm font-semibold text-zinc-800 leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors">
           {product.name}
         </p>
-        <div className="flex items-center justify-between">
-          {price ? (
-            <span className="text-xl font-bold text-slate-900">{price}</span>
-          ) : (
-            <span className="flex items-center gap-1 text-xs text-blue-500 font-medium">
-              Ver no site
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </span>
+        <div className="flex items-center gap-1 mt-1.5">
+          <Clock className="w-3 h-3 text-zinc-300 shrink-0" />
+          <span className="text-[11px] text-zinc-400">{relativeTime(product.last_updated)}</span>
+          {product.variation_7d_pct !== null && (
+            <span className="text-[11px] text-zinc-300">· 7 dias</span>
           )}
-          <VariationBadge pct={product.variation_7d_pct} />
         </div>
-        <p className="text-xs text-slate-400 mt-1.5">
-          {relativeTime(product.last_updated)}
-          {product.variation_7d_pct !== null && " · vs 7 dias atrás"}
-        </p>
+      </div>
+
+      {/* Price + badge */}
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        {price ? (
+          <span className="text-lg font-bold text-zinc-900 tabular-nums">{price}</span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+            Ver <ExternalLink className="w-3 h-3" />
+          </span>
+        )}
+        <VariationBadge pct={product.variation_7d_pct} />
       </div>
     </a>
   );
@@ -109,37 +148,48 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end px-1">
+    <div className="space-y-5">
+      {/* Global toggle */}
+      <div className="flex justify-end">
         <button
           onClick={toggleAll}
-          className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 rounded-full transition-colors"
         >
+          <ChevronsUpDown className="w-3.5 h-3.5" />
           {allCollapsed ? "Expandir todas" : "Recolher todas"}
         </button>
       </div>
+
+      {/* Categories */}
       {categories.map((category) => {
         const items = byCategory[category];
         const isCollapsed = !!collapsed[category];
+        const dotColor = CATEGORY_COLORS[category] ?? "bg-zinc-400";
+
         return (
           <section key={category}>
+            {/* Category header */}
             <button
               onClick={() => toggleCategory(category)}
-              className="flex items-center justify-between w-full px-1 mb-3 group"
+              className="flex items-center justify-between w-full mb-3 group"
             >
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                {category} ({items.length})
-              </h2>
-              <svg
-                className={`w-4 h-4 text-slate-400 transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
+                <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  {category}
+                </span>
+                <span className="text-xs font-semibold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full">
+                  {items.length}
+                </span>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
+              />
             </button>
+
+            {/* Product cards */}
             {!isCollapsed && (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {items.map((p) => (
                   <ProductCard key={p.name} product={p} />
                 ))}

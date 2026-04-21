@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { Eye, Home } from "lucide-react";
 import ProductActions from "./ProductActions";
 
 export const dynamic = "force-dynamic";
@@ -31,25 +32,33 @@ export default async function AdminPage() {
   const products = await getProducts();
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-100 shadow-sm">
+    <div className="min-h-screen bg-zinc-50">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-blue-600 leading-none flex items-center gap-1.5">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              Argus
-            </h1>
-            <p className="text-xs text-slate-400 mt-0.5">Admin · {products.length} produto{products.length !== 1 ? "s" : ""}</p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl btn-brand flex items-center justify-center shrink-0">
+              <Eye className="w-4 h-4 text-white" strokeWidth={2} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 leading-none">
+                <h1 className="text-base font-bold text-zinc-900">Argus</h1>
+                <span className="text-[11px] font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                  Admin
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                {products.length} produto{products.length !== 1 ? "s" : ""}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <a href="/" title="Ver painel" className="text-slate-400 hover:text-blue-600 transition-colors">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-              </svg>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/"
+              title="Ver painel"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <Home className="w-4.5 h-4.5" strokeWidth={1.75} />
             </a>
             <ProductActions products={products} logoutOnly />
           </div>

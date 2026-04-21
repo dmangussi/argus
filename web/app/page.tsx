@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { Eye, Clock, Settings } from "lucide-react";
 import CategoryList from "./CategoryList";
 
 export const dynamic = "force-dynamic";
@@ -51,33 +52,33 @@ export default async function HomePage() {
   const lastUpdate = products.find((p) => p.last_updated)?.last_updated ?? null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-100 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-blue-600 leading-none flex items-center gap-1.5">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              Argus
-            </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {products.length} produto{products.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-xs text-slate-400">última coleta</p>
-              <p className="text-xs font-medium text-slate-600">{relativeTime(lastUpdate)}</p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl btn-brand flex items-center justify-center shrink-0">
+              <Eye className="w-4 h-4 text-white" strokeWidth={2} />
             </div>
-            <a href="/admin" title="Admin" className="text-slate-400 hover:text-blue-600 transition-colors">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="white"/>
-                <line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="white"/>
-                <line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="white"/>
-              </svg>
+            <div>
+              <h1 className="text-base font-bold text-zinc-900 leading-none">Argus</h1>
+              <p className="text-[11px] text-zinc-400 mt-0.5 leading-none">
+                {products.length} produto{products.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 bg-zinc-100 rounded-full px-3 py-1.5">
+              <Clock className="w-3 h-3 text-zinc-400" />
+              <span className="text-[11px] text-zinc-500 font-medium">{relativeTime(lastUpdate)}</span>
+            </div>
+            <a
+              href="/admin"
+              title="Admin"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <Settings className="w-4.5 h-4.5" strokeWidth={1.75} />
             </a>
           </div>
         </div>
@@ -86,10 +87,13 @@ export default async function HomePage() {
       {/* Content */}
       <main className="max-w-lg mx-auto px-4 py-5 space-y-6">
         {products.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-slate-400 text-sm">Nenhum produto coletado ainda.</p>
-            <p className="text-slate-400 text-xs mt-1">
-              Execute: <code className="bg-slate-100 px-1 rounded">python main.py --once</code>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-100 flex items-center justify-center mb-4">
+              <Eye className="w-8 h-8 text-zinc-300" strokeWidth={1.5} />
+            </div>
+            <p className="text-sm font-medium text-zinc-600">Nenhum produto ainda</p>
+            <p className="text-xs text-zinc-400 mt-1">
+              Execute <code className="bg-zinc-100 px-1.5 py-0.5 rounded-md font-mono">python main.py --once</code> para coletar
             </p>
           </div>
         ) : (
@@ -97,8 +101,8 @@ export default async function HomePage() {
         )}
       </main>
 
-      <footer className="max-w-lg mx-auto px-4 py-6 text-center">
-        <p className="text-xs text-slate-300">Argus</p>
+      <footer className="max-w-lg mx-auto px-4 py-8 text-center">
+        <p className="text-xs text-zinc-300 font-medium tracking-widest uppercase">Argus</p>
       </footer>
     </div>
   );
