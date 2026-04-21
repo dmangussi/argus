@@ -12,17 +12,28 @@ type Product = {
   last_updated: Date | null;
   variation_7d_pct: string | null;
   image_url: string | null;
+  price_history: number[] | null;
 };
 
 async function getProducts(): Promise<Product[]> {
   const sql = postgres(process.env.DATABASE_URL!);
   try {
     return await sql<Product[]>`
-      SELECT name, category, product_url, image_url,
-             current_price, last_updated, variation_7d_pct
-      FROM v_products_summary
-      WHERE is_active = true
-      ORDER BY category NULLS LAST, name
+      SELECT
+        ps.name, ps.category, ps.product_url, ps.image_url,
+        ps.current_price, ps.last_updated, ps.variation_7d_pct,
+        hist.data as price_history
+      FROM v_products_summary ps
+      LEFT JOIN LATERAL (
+        SELECT json_agg(p.price ORDER BY p.collected_at ASC) AS data
+        FROM (
+          SELECT price, collected_at FROM price_history
+          WHERE product_id = ps.id
+          ORDER BY collected_at DESC LIMIT 12
+        ) p
+      ) hist ON true
+      WHERE ps.is_active = true
+      ORDER BY ps.category NULLS LAST, ps.name
     `;
   } finally {
     await sql.end();

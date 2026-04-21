@@ -4,11 +4,8 @@ import { useState } from "react";
 import {
   ChevronDown,
   ChevronsUpDown,
-  TrendingDown,
-  TrendingUp,
   Clock,
   ExternalLink,
-  Minus,
   PackageSearch,
 } from "lucide-react";
 
@@ -20,7 +17,44 @@ type Product = {
   last_updated: Date | null;
   variation_7d_pct: string | null;
   image_url: string | null;
+  price_history: number[] | null;
 };
+
+function Sparkline({ prices }: { prices: number[] }) {
+  if (prices.length < 2) return null;
+
+  const W = 72;
+  const H = 22;
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+
+  const pts = prices
+    .map((p, i) => {
+      const x = (i / (prices.length - 1)) * W;
+      const y = H - ((p - min) / range) * (H - 2) - 1;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  const first = prices[0];
+  const last = prices[prices.length - 1];
+  const color = last < first ? "#10B981" : last > first ? "#F43F5E" : "#A1A1AA";
+
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible">
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.85"
+      />
+    </svg>
+  );
+}
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Hortifruti":      "bg-emerald-400",
@@ -48,28 +82,21 @@ function relativeTime(date: Date | null): string {
 }
 
 function VariationBadge({ pct }: { pct: string | null }) {
-  if (pct === null) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-zinc-100 text-zinc-400 text-xs font-medium">
-        <Minus className="w-3 h-3" />
-      </span>
-    );
-  }
+  if (pct === null) return null;
   const value = parseFloat(pct);
+  const isFlat = Math.abs(value) < 0.05;
   const isDrop = value < 0;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-        isDrop
+      className={`inline-flex items-center gap-0.5 px-2 py-1 rounded-full text-xs font-semibold tabular-nums ${
+        isFlat
+          ? "bg-zinc-100 text-zinc-400"
+          : isDrop
           ? "bg-emerald-50 text-emerald-700"
           : "bg-rose-50 text-rose-600"
       }`}
     >
-      {isDrop
-        ? <TrendingDown className="w-3 h-3" />
-        : <TrendingUp className="w-3 h-3" />
-      }
-      {Math.abs(value).toFixed(1)}%
+      {isFlat ? "→" : isDrop ? "↓" : "↑"} {Math.abs(value).toFixed(1).replace(".", ",")}%
     </span>
   );
 }
@@ -79,6 +106,14 @@ function ProductCard({ product }: { product: Product }) {
   const price = hasPrice
     ? parseFloat(product.current_price!).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
     : null;
+
+  const effectivePct = (() => {
+    if (product.variation_7d_pct !== null) return product.variation_7d_pct;
+    const h = product.price_history;
+    if (!h || h.length < 2) return null;
+    const pct = ((h[h.length - 1] - h[0]) / h[0]) * 100;
+    return pct.toFixed(2);
+  })();
 
   return (
     <a
@@ -105,13 +140,15 @@ function ProductCard({ product }: { product: Product }) {
         <p className="text-sm font-semibold text-zinc-800 leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors">
           {product.name}
         </p>
-        <div className="flex items-center gap-1 mt-1.5">
+        <div className="flex items-center gap-1 mt-1">
           <Clock className="w-3 h-3 text-zinc-300 shrink-0" />
           <span className="text-[11px] text-zinc-400">{relativeTime(product.last_updated)}</span>
-          {product.variation_7d_pct !== null && (
-            <span className="text-[11px] text-zinc-300">· 7 dias</span>
-          )}
         </div>
+        {product.price_history && product.price_history.length >= 2 && (
+          <div className="mt-1.5">
+            <Sparkline prices={product.price_history} />
+          </div>
+        )}
       </div>
 
       {/* Price + badge */}
@@ -123,7 +160,7 @@ function ProductCard({ product }: { product: Product }) {
             Ver <ExternalLink className="w-3 h-3" />
           </span>
         )}
-        <VariationBadge pct={product.variation_7d_pct} />
+        <VariationBadge pct={effectivePct} />
       </div>
     </a>
   );
