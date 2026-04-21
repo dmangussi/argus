@@ -7,6 +7,8 @@ import {
   Clock,
   ExternalLink,
   PackageSearch,
+  Search,
+  X,
 } from "lucide-react";
 
 type Product = {
@@ -167,16 +169,30 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 export default function CategoryList({ byCategory }: { byCategory: Record<string, Product[]> }) {
-  const categories = Object.keys(byCategory);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [query, setQuery] = useState("");
 
-  const allCollapsed = categories.every((c) => collapsed[c]);
+  const filtered = query.trim()
+    ? Object.fromEntries(
+        Object.entries(byCategory)
+          .map(([cat, items]) => [
+            cat,
+            items.filter((p) =>
+              p.name.toLowerCase().includes(query.toLowerCase())
+            ),
+          ])
+          .filter(([, items]) => (items as Product[]).length > 0)
+      ) as Record<string, Product[]>
+    : byCategory;
+
+  const visibleCategories = Object.keys(filtered);
+  const allCollapsed = visibleCategories.every((c) => collapsed[c]);
 
   function toggleAll() {
     if (allCollapsed) {
       setCollapsed({});
     } else {
-      setCollapsed(Object.fromEntries(categories.map((c) => [c, true])));
+      setCollapsed(Object.fromEntries(visibleCategories.map((c) => [c, true])));
     }
   }
 
@@ -184,28 +200,67 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
     setCollapsed((prev) => ({ ...prev, [cat]: !prev[cat] }));
   }
 
+  const totalResults = visibleCategories.reduce(
+    (acc, cat) => acc + filtered[cat].length,
+    0
+  );
+
   return (
     <div className="space-y-5">
-      {/* Global toggle */}
-      <div className="flex justify-end">
+      {/* Search + controls row */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Buscar produto..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-9 pr-8 py-2 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
         <button
           onClick={toggleAll}
-          className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 rounded-full transition-colors"
+          className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 bg-zinc-100 hover:bg-zinc-200 px-3 py-2 rounded-xl transition-colors"
         >
           <ChevronsUpDown className="w-3.5 h-3.5" />
-          {allCollapsed ? "Expandir todas" : "Recolher todas"}
+          {allCollapsed ? "Expandir" : "Recolher"}
         </button>
       </div>
 
+      {/* Results count */}
+      {query && totalResults > 0 && (
+        <p className="text-xs text-zinc-400 -mt-2">
+          {totalResults} resultado{totalResults !== 1 ? "s" : ""} para{" "}
+          <span className="font-medium text-zinc-600">"{query}"</span>
+        </p>
+      )}
+
+      {/* No results */}
+      {visibleCategories.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <PackageSearch className="w-10 h-10 text-zinc-300 mb-3" strokeWidth={1.5} />
+          <p className="text-sm font-medium text-zinc-500">Nenhum produto encontrado</p>
+          <p className="text-xs text-zinc-400 mt-1">Tente outro termo</p>
+        </div>
+      )}
+
       {/* Categories */}
-      {categories.map((category) => {
-        const items = byCategory[category];
+      {visibleCategories.map((category) => {
+        const items = filtered[category];
         const isCollapsed = !!collapsed[category];
         const dotColor = CATEGORY_COLORS[category] ?? "bg-zinc-400";
 
         return (
           <section key={category}>
-            {/* Category header */}
             <button
               onClick={() => toggleCategory(category)}
               className="flex items-center justify-between w-full mb-3 group"
@@ -224,7 +279,6 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
               />
             </button>
 
-            {/* Product cards */}
             {!isCollapsed && (
               <div className="space-y-2.5">
                 {items.map((p) => (
