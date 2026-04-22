@@ -69,6 +69,7 @@ class Scraper:
                 log.warning("Timeout em %s (tentativa %d/2)", url, attempt)
                 if attempt == 2:
                     return None
+                log.info("Aguardando 5s antes de retry: %s", url)
                 await asyncio.sleep(5)
             except Exception as exc:
                 log.exception("Erro inesperado em %s: %s", url, exc)

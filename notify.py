@@ -42,7 +42,9 @@ def upsert_products(products: list[dict[str, Any]]) -> None:
 
 def fetch_products() -> list[dict[str, Any]]:
     with _conn() as conn:
-        return conn.execute("SELECT * FROM products WHERE is_active = true").fetchall()
+        rows = conn.execute("SELECT * FROM products WHERE is_active = true").fetchall()
+    log.info("Produtos ativos: %d", len(rows))
+    return rows
 
 
 def update_product_image(product_id: str, image_url: str) -> None:
@@ -54,11 +56,14 @@ def update_product_image(product_id: str, image_url: str) -> None:
 
 
 def save_price(product_id: str, price: float) -> None:
-    with _conn() as conn:
-        conn.execute(
-            "INSERT INTO price_history (product_id, price) VALUES (%s, %s)",
-            (str(product_id), price),
-        )
+    try:
+        with _conn() as conn:
+            conn.execute(
+                "INSERT INTO price_history (product_id, price) VALUES (%s, %s)",
+                (str(product_id), price),
+            )
+    except Exception:
+        log.exception("Erro ao salvar preço — product_id=%s price=%.2f", product_id, price)
 
 
 def recent_prices(product_id: str, limit: int = 14) -> list[float]:
@@ -88,11 +93,15 @@ def send_alerts(alerts: list[dict[str, Any]]) -> None:
             a["pct"],
             a["avg_price"],
         )
-        with _conn() as conn:
-            conn.execute(
-                """
-                INSERT INTO notifications_sent (product_id, kind, old_price, new_price, variation_pct)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (str(a["product"]["id"]), a["kind"], a["avg_price"], a["new_price"], a["pct"]),
-            )
+        try:
+            with _conn() as conn:
+                conn.execute(
+                    """
+                    INSERT INTO notifications_sent (product_id, kind, old_price, new_price, variation_pct)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (str(a["product"]["id"]), a["kind"], a["avg_price"], a["new_price"], a["pct"]),
+                )
+        except Exception:
+            log.exception("Erro ao registrar alerta — product_id=%s", a["product"]["id"])
+    log.info("%d alerta(s) processado(s)", len(alerts))

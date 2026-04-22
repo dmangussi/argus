@@ -11,6 +11,7 @@ import argparse
 import asyncio
 import logging
 import os
+import time
 from typing import Any
 
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -80,10 +81,11 @@ def _print_results(results: list[tuple[str, float | None]]) -> None:
 async def run_once() -> None:
     products = notify.fetch_products()
     if not products:
-        log.warning("Nenhum produto ativo. Adicione produtos em /admin ou rode: python main.py --seed")
+        log.warning("Nenhum produto ativo. Adicione produtos em /admin.")
         return
 
     log.info("Iniciando coleta de %d produtos", len(products))
+    t0 = time.monotonic()
     results: list[tuple[str, float | None]] = []
     alerts: list[dict[str, Any]] = []
     sem = asyncio.Semaphore(CONCURRENCY)
@@ -92,17 +94,18 @@ async def run_once() -> None:
 
         async def process(product: dict[str, Any]) -> None:
             log.info("[→] Iniciando: %s", product["name"])
+            t_prod = time.monotonic()
             async with sem:
                 result = await scraper.scrape(
                     product["product_url"],
                     product.get("price_selector") or "",
                 )
             if result is None:
-                log.warning("[✗] Falhou: %s", product["name"])
+                log.warning("[✗] Falhou: %s  (%.1fs)", product["name"], time.monotonic() - t_prod)
                 results.append((product["name"], None))
                 return
             price, image_url = result
-            log.info("[✓] Coletado: %-30s R$ %.2f", product["name"], price)
+            log.info("[✓] Coletado: %-30s R$ %.2f  (%.1fs)", product["name"], price, time.monotonic() - t_prod)
             results.append((product["name"], price))
             notify.save_price(product["id"], price)
             if image_url and not product.get("image_url"):
@@ -116,6 +119,8 @@ async def run_once() -> None:
         await asyncio.gather(*[process(p) for p in products])
 
     _print_results(results)
+    ok = sum(1 for _, p in results if p is not None)
+    log.info("Coleta concluída em %.1fs — %d/%d ok, %d alerta(s)", time.monotonic() - t0, ok, len(results), len(alerts))
     if alerts:
         notify.send_alerts(alerts)
 
