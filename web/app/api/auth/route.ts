@@ -14,6 +14,7 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set("argus_session", "1", {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     sameSite: "lax",
     maxAge: 86400,

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   LogOut, Plus, Link2, Tag, AlertCircle, Loader2,
-  ChevronDown, Trash2, CircleDot, Circle,
+  ChevronDown, Trash2, CircleDot, Circle, Play, CheckCircle2,
 } from "lucide-react";
 import type { Product } from "./page";
 
@@ -82,7 +82,63 @@ export default function ProductActions({ products = [], logoutOnly = false }: Pr
   return (
     <div className="space-y-5">
       <AddProductForm onAdded={() => router.refresh()} />
+      <ScrapeNowButton />
       <ProductList products={products} onChanged={() => router.refresh()} />
+    </div>
+  );
+}
+
+function ScrapeNowButton() {
+  const [scraping, setScraping] = useState(false);
+  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleScrape() {
+    setScraping(true);
+    setStatus("idle");
+    const res = await fetch("/api/scrape", { method: "POST" });
+    if (res.ok) {
+      setStatus("ok");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setErrorMsg(data.error || `Erro ${res.status}`);
+      setStatus("error");
+    }
+    setScraping(false);
+    setTimeout(() => setStatus("idle"), 4000);
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-card border border-zinc-200 p-5">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold text-zinc-800">Coletar agora</p>
+          <p className="text-xs text-zinc-400 mt-0.5">Dispara uma coleta de preços imediatamente</p>
+        </div>
+        <button
+          onClick={handleScrape}
+          disabled={scraping}
+          className="btn-brand text-white font-semibold rounded-xl px-4 py-2 text-sm disabled:opacity-60 flex items-center gap-2 shrink-0"
+        >
+          {scraping
+            ? <><Loader2 className="w-4 h-4 animate-spin" /> Disparando...</>
+            : <><Play className="w-4 h-4" strokeWidth={2} /> Coletar</>
+          }
+        </button>
+      </div>
+
+      {status === "ok" && (
+        <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2.5 mt-3">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <p className="text-xs font-medium">Coleta disparada — acompanhe em Actions</p>
+        </div>
+      )}
+      {status === "error" && (
+        <div className="flex items-center gap-2 text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2.5 mt-3">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <p className="text-xs font-medium">{errorMsg}</p>
+        </div>
+      )}
     </div>
   );
 }
