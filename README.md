@@ -25,9 +25,8 @@ Docker local (scraper) ──escreve──▶ Vercel Postgres ◀──lê──
 cp .env.example .env
 # Cole POSTGRES_URL_NON_POOLING como DATABASE_URL no .env
 
-docker compose up --build -d                          # sobe o scheduler
-docker compose run --rm scraper python main.py --seed # popula o banco (1x)
-docker compose logs -f scraper                        # acompanha logs
+docker compose up --build -d           # sobe o scheduler
+docker compose logs -f scraper         # acompanha logs
 docker compose run --rm scraper python main.py --once # disparo manual
 ```
 
@@ -42,11 +41,8 @@ docker compose run --rm scraper python main.py --once # disparo manual
 
 ## Adicionando produtos
 
-Edite `products.yaml` e rode o seed novamente:
-
-```bash
-docker compose run --rm scraper python main.py --seed
-```
+Acesse `/admin` no frontend e use o formulário para criar, editar ou remover produtos.
+Os produtos são gerenciados inteiramente pelo banco de dados.
 
 ## Convenções e arquitetura
 

@@ -10,21 +10,21 @@
   "dependencies": {
     "geist": "^1.7.0",
     "lucide-react": "^1.8.0",
-    "next": "^15",
-    "postgres": "^3.4",
-    "react": "^19",
-    "react-dom": "^19"
+    "next": "^16.2.4",
+    "postgres": "^3.4.9",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   },
   "engines": {
     "node": "24.x"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "autoprefixer": "^10",
-    "postcss": "^8",
-    "tailwindcss": "^3.4",
-    "typescript": "^5"
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3"
   }
 }

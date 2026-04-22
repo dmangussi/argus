@@ -1,9 +1,0 @@
-# Produtos monitorados — copie para products.yaml e preencha as URLs reais
-# cp products.example.yaml products.yaml
-
-products:
-  - slug: produto-exemplo
-    name: "Nome do Produto"
-    category: "Categoria"
-    product_url: "https://www.site.com.br/busca/?search=produto"
-    price_selector: ".preco"
