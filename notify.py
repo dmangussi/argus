@@ -58,7 +58,7 @@ def update_product_image(product_id: str, image_url: str) -> None:
     with _conn() as conn:
         conn.execute(
             "UPDATE products SET image_url = %s WHERE id = %s AND image_url IS NULL",
-            (product_id, product_id),
+            (image_url, product_id),
         )
 
 
