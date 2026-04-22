@@ -10,8 +10,6 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
@@ -24,7 +22,7 @@ jobs:
           cache-dependency-glob: ""
 
       - name: Install dependencies
-        run: uv pip install -e .
+        run: uv venv && uv pip install -e .
 
       - name: Install Playwright browsers
         run: uv run python -m playwright install --with-deps chromium
