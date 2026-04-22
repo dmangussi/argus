@@ -12,7 +12,6 @@ import asyncio
 import logging
 import os
 import time
-from typing import Any
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -20,6 +19,8 @@ from dotenv import load_dotenv
 
 import notify
 import scraper as sc
+from analysis import analyze
+from models import Alert, Product, ScrapeOutcome
 
 load_dotenv()
 
@@ -40,45 +41,67 @@ TIMEZONE = "America/Sao_Paulo"
 log = logging.getLogger(__name__)
 
 
-# --- Análise de variação ---
-def analyze(product: dict[str, Any], new_price: float, history: list[float]) -> dict[str, Any] | None:
-    if len(history) < MIN_HISTORY:
-        return None
-    avg = sum(history) / len(history)
-    if avg <= 0:
-        return None
-    pct = (new_price - avg) / avg * 100
-    if pct <= DROP_THRESHOLD:
-        kind = "price_drop"
-    elif pct >= RISE_THRESHOLD:
-        kind = "price_rise"
-    else:
-        return None
-    return {
-        "product": product,
-        "new_price": new_price,
-        "avg_price": round(avg, 2),
-        "pct": round(pct, 2),
-        "kind": kind,
-    }
-
-
 # --- Orquestração ---
-def _print_results(results: list[tuple[str, float | None]]) -> None:
+def _print_results(scrape_results: list[tuple[str, float | None]]) -> int:
+    """Log a formatted summary table and return the number of successful scrapes."""
     log.info("─" * 45)
     log.info(" RESULTADOS DA COLETA")
     log.info("─" * 45)
-    for name, price in sorted(results, key=lambda r: r[0]):
+    for name, price in sorted(scrape_results, key=lambda r: r[0]):
         if price is not None:
             log.info(" %-30s  R$ %.2f", name, price)
         else:
             log.info(" %-30s  FALHOU", name)
     log.info("─" * 45)
-    ok = sum(1 for _, p in results if p is not None)
-    log.info(" %d/%d coletados", ok, len(results))
+    ok = sum(1 for _, price in scrape_results if price is not None)
+    log.info(" %d/%d coletados", ok, len(scrape_results))
+    return ok
+
+
+async def _scrape_product(
+    product: Product,
+    scraper: sc.Scraper,
+    sem: asyncio.Semaphore,
+) -> ScrapeOutcome:
+    """Scrape one product under the given semaphore and return its outcome.
+
+    Never raises — failures are captured in ``ScrapeOutcome.price = None``.
+    DB writes (save_price, update_product_image) happen here so they are
+    tied to the scrape and do not require a second pass over the results.
+    """
+    log.info("[→] Iniciando: %s", product["name"])
+    t0 = time.monotonic()
+    async with sem:
+        scrape_result = await scraper.scrape(
+            product["product_url"],
+            product.get("price_selector") or "",
+        )
+    elapsed = time.monotonic() - t0
+
+    if scrape_result is None:
+        log.warning("[✗] Falhou: %s  (%.1fs)", product["name"], elapsed)
+        return ScrapeOutcome(product_name=product["name"], price=None)
+
+    price, image_url = scrape_result
+    log.info("[✓] Coletado: %-30s R$ %.2f  (%.1fs)", product["name"], price, elapsed)
+    notify.save_price(product["id"], price)
+
+    if image_url and not product.get("image_url"):
+        notify.update_product_image(product["id"], image_url)
+        log.info("[img] Imagem salva: %s", product["name"])
+
+    history = notify.recent_prices(product["id"])
+    alert = analyze(
+        product, price, history,
+        min_history=MIN_HISTORY,
+        drop_threshold=DROP_THRESHOLD,
+        rise_threshold=RISE_THRESHOLD,
+    )
+    return ScrapeOutcome(product_name=product["name"], price=price, alert=alert)
 
 
 async def run_once() -> None:
+    """Fetch active products, scrape prices concurrently, and dispatch alerts."""
     products = notify.fetch_products()
     if not products:
         log.warning("Nenhum produto ativo. Adicione produtos em /admin.")
@@ -86,47 +109,28 @@ async def run_once() -> None:
 
     log.info("Iniciando coleta de %d produtos", len(products))
     t0 = time.monotonic()
-    results: list[tuple[str, float | None]] = []
-    alerts: list[dict[str, Any]] = []
     sem = asyncio.Semaphore(CONCURRENCY)
 
     async with sc.Scraper(headless=HEADLESS, delay_min=DELAY_MIN, delay_max=DELAY_MAX) as scraper:
+        outcomes: tuple[ScrapeOutcome, ...] = await asyncio.gather(*[
+            _scrape_product(product, scraper, sem) for product in products
+        ])
 
-        async def process(product: dict[str, Any]) -> None:
-            log.info("[→] Iniciando: %s", product["name"])
-            t_prod = time.monotonic()
-            async with sem:
-                result = await scraper.scrape(
-                    product["product_url"],
-                    product.get("price_selector") or "",
-                )
-            if result is None:
-                log.warning("[✗] Falhou: %s  (%.1fs)", product["name"], time.monotonic() - t_prod)
-                results.append((product["name"], None))
-                return
-            price, image_url = result
-            log.info("[✓] Coletado: %-30s R$ %.2f  (%.1fs)", product["name"], price, time.monotonic() - t_prod)
-            results.append((product["name"], price))
-            notify.save_price(product["id"], price)
-            if image_url and not product.get("image_url"):
-                notify.update_product_image(product["id"], image_url)
-                log.info("[img] Imagem salva: %s", product["name"])
-            history = notify.recent_prices(product["id"])
-            alert = analyze(product, price, history)
-            if alert:
-                alerts.append(alert)
+    scrape_results = [(o.product_name, o.price) for o in outcomes]
+    price_alerts: list[Alert] = [o.alert for o in outcomes if o.alert is not None]
 
-        await asyncio.gather(*[process(p) for p in products])
-
-    _print_results(results)
-    ok = sum(1 for _, p in results if p is not None)
-    log.info("Coleta concluída em %.1fs — %d/%d ok, %d alerta(s)", time.monotonic() - t0, ok, len(results), len(alerts))
-    if alerts:
-        notify.send_alerts(alerts)
+    ok = _print_results(scrape_results)
+    log.info(
+        "Coleta concluída em %.1fs — %d/%d ok, %d alerta(s)",
+        time.monotonic() - t0, ok, len(scrape_results), len(price_alerts),
+    )
+    if price_alerts:
+        notify.send_alerts(price_alerts)
 
 
 # --- Scheduler ---
 def _run_once_sync() -> None:
+    """Synchronous wrapper around run_once for APScheduler compatibility."""
     try:
         asyncio.run(run_once())
     except Exception:
@@ -134,6 +138,7 @@ def _run_once_sync() -> None:
 
 
 def run_scheduler() -> None:
+    """Start the blocking APScheduler with morning and evening jobs."""
     scheduler = BlockingScheduler(timezone=TIMEZONE)
     scheduler.add_job(
         _run_once_sync,
@@ -156,6 +161,7 @@ def run_scheduler() -> None:
 
 # --- Entrypoint ---
 def main() -> None:
+    """Configure logging and dispatch to the appropriate run mode."""
     logging.basicConfig(
         level=LOG_LEVEL,
         format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",

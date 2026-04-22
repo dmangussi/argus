@@ -8,3 +8,6 @@ dependencies = [
     "apscheduler>=3.11",
     "python-dotenv>=1.2",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest==9.0.3"]
