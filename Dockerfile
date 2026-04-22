@@ -6,18 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TZ=America/Sao_Paulo
 
-LABEL org.opencontainers.image.title="Argus"
-
 WORKDIR /app
 
-# Instala deps no Python do sistema (sem venv) — permite volume mount do código
 COPY pyproject.toml .
-RUN uv pip install --system --no-cache \
-    "playwright>=1.51" \
-    "psycopg[binary]>=3.2" \
-    "apscheduler>=3.11" \
-    "pyyaml>=6.0.2" \
-    "python-dotenv>=1.1"
+RUN uv pip install --system --no-cache -e .
 
 COPY . .
 

@@ -1,0 +1,33 @@
+name: Argus Scraper
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 06:00 BRT (UTC-3)
+    - cron: '0 21 * * *'  # 18:00 BRT (UTC-3)
+  workflow_dispatch:        # disparo manual pela UI do GitHub
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv pip install --system -e .
+
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run scraper
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python main.py --once
