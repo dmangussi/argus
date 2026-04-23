@@ -60,6 +60,20 @@ function Sparkline({ prices }: { prices: number[] }) {
   );
 }
 
+const CATEGORY_GRADIENTS: Record<string, string> = {
+  "Hortifruti":         "from-emerald-50",
+  "Padaria":            "from-amber-50",
+  "Açougue":            "from-red-50",
+  "Laticínios e Frios": "from-sky-50",
+  "Mercearia":          "from-orange-50",
+  "Congelados":         "from-cyan-50",
+  "Bebidas":            "from-blue-50",
+  "Higiene":            "from-pink-50",
+  "Limpeza":            "from-teal-50",
+  "Pet Shop":           "from-purple-50",
+  "Outros":             "from-zinc-50",
+};
+
 const CATEGORY_COLORS: Record<string, string> = {
   "Hortifruti":         "bg-emerald-400",
   "Padaria":            "bg-amber-400",
@@ -206,9 +220,11 @@ function HistoryModal({ product, onClose }: { product: Product; onClose: () => v
 
 function ProductCard({
   product,
+  category,
   onOpenHistory,
 }: {
   product: Product;
+  category: string;
   onOpenHistory: () => void;
 }) {
   const [nameExpanded, setNameExpanded] = useState(false);
@@ -250,7 +266,7 @@ function ProductCard({
       href={product.product_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col bg-white rounded-2xl border border-zinc-200 p-3.5 hover:border-indigo-200 hover:shadow-card-hover transition-all duration-200 active:scale-[0.98]"
+      className={`group flex flex-col bg-gradient-to-r ${CATEGORY_GRADIENTS[category] ?? "from-zinc-50"} to-white rounded-2xl border border-zinc-200 p-3.5 hover:border-indigo-200 hover:shadow-card-hover transition-all duration-200 active:scale-[0.98]`}
     >
       <div className="flex items-center gap-3">
         {/* Image */}
@@ -526,6 +542,7 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
                     <ProductCard
                       key={p.name}
                       product={p}
+                      category={category}
                       onOpenHistory={() => setHistoryProduct(p)}
                     />
                   ))}
