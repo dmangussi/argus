@@ -178,7 +178,7 @@ function ProductCard({ product }: { product: Product }) {
           </p>
           <div className="flex items-center gap-1 mt-1">
             <Clock className="w-3 h-3 text-zinc-300 shrink-0" />
-            <span className="text-[11px] text-zinc-400">{relativeTime(product.last_updated)}</span>
+            <span className="text-[11px] text-zinc-400" suppressHydrationWarning>{relativeTime(product.last_updated)}</span>
           </div>
           {h && h.length >= 2 && (
             <div className="mt-1.5 cursor-pointer" onClick={toggleDetails}>
