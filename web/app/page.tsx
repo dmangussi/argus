@@ -69,10 +69,8 @@ export default async function HomePage() {
               <Eye className="w-4 h-4 text-white" strokeWidth={2} />
             </div>
             <div>
-              <h1 className="text-base font-bold text-zinc-900 leading-none">Argus</h1>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-none">
-                {products.length} produto{products.length !== 1 ? "s" : ""}
-              </p>
+              <h1 className="text-lg font-bold text-zinc-900 leading-none">Argus</h1>
+              <p className="text-[10px] text-zinc-400 mt-0.5 leading-none tracking-wide">monitor de preços</p>
             </div>
           </div>
 

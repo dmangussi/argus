@@ -41,14 +41,12 @@ export default async function AdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2 leading-none">
-                <h1 className="text-base font-bold text-zinc-900">Argus</h1>
+                <h1 className="text-lg font-bold text-zinc-900">Argus</h1>
                 <span className="text-[11px] font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
                   Admin
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
-                {products.length} produto{products.length !== 1 ? "s" : ""}
-              </p>
+              <p className="text-[10px] text-zinc-400 mt-0.5 leading-none tracking-wide">monitor de preços</p>
             </div>
           </div>
 
