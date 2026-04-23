@@ -498,6 +498,7 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
 
           return (
             <section key={category}>
+              <div className="sticky top-14 z-10 -mx-4 px-4 bg-zinc-50/90 backdrop-blur-sm">
               <button
                 onClick={() => toggleCategory(category)}
                 className="flex items-center justify-between w-full mb-3 group"
@@ -517,6 +518,7 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
                   }`}
                 />
               </button>
+              </div>
 
               {!isCollapsed && (
                 <div className="space-y-2.5">
