@@ -60,18 +60,18 @@ function Sparkline({ prices }: { prices: number[] }) {
   );
 }
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  "Hortifruti":         "from-emerald-50",
-  "Padaria":            "from-amber-50",
-  "Açougue":            "from-red-50",
-  "Laticínios e Frios": "from-sky-50",
-  "Mercearia":          "from-orange-50",
-  "Congelados":         "from-cyan-50",
-  "Bebidas":            "from-blue-50",
-  "Higiene":            "from-pink-50",
-  "Limpeza":            "from-teal-50",
-  "Pet Shop":           "from-purple-50",
-  "Outros":             "from-zinc-50",
+const CATEGORY_BORDERS: Record<string, string> = {
+  "Hortifruti":         "border-l-emerald-300",
+  "Padaria":            "border-l-amber-300",
+  "Açougue":            "border-l-red-300",
+  "Laticínios e Frios": "border-l-sky-300",
+  "Mercearia":          "border-l-orange-300",
+  "Congelados":         "border-l-cyan-300",
+  "Bebidas":            "border-l-blue-300",
+  "Higiene":            "border-l-pink-300",
+  "Limpeza":            "border-l-teal-300",
+  "Pet Shop":           "border-l-purple-300",
+  "Outros":             "border-l-zinc-300",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -266,7 +266,7 @@ function ProductCard({
       href={product.product_url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group flex flex-col bg-gradient-to-r ${CATEGORY_GRADIENTS[category] ?? "from-zinc-50"} to-white rounded-2xl border border-zinc-200 p-3.5 hover:border-indigo-200 hover:shadow-card-hover transition-all duration-200 active:scale-[0.98]`}
+      className={`group flex flex-col bg-white rounded-2xl border border-zinc-200 border-l-2 ${CATEGORY_BORDERS[category] ?? "border-l-zinc-300"} p-3.5 hover:border-indigo-200 hover:shadow-card-hover transition-all duration-200 active:scale-[0.98]`}
     >
       <div className="flex items-center gap-3">
         {/* Image */}
