@@ -109,8 +109,17 @@ export default async function HomePage() {
         )}
       </main>
 
-      <footer className="max-w-lg mx-auto px-4 py-8 text-center">
-        <p className="text-xs text-zinc-300 font-medium tracking-widest uppercase">Argus</p>
+      <footer className="max-w-lg mx-auto px-4 pt-4 pb-10">
+        <div className="border-t border-zinc-100 pt-6 flex flex-col items-center gap-2 text-center">
+          <p className="text-xs font-bold text-zinc-300 tracking-widest uppercase">Argus</p>
+          {products.length > 0 && (
+            <p className="text-[11px] text-zinc-400">
+              {products.length} produto{products.length !== 1 ? "s" : ""} em{" "}
+              {Object.keys(byCategory).length} categori{Object.keys(byCategory).length !== 1 ? "as" : "a"}
+            </p>
+          )}
+          <p className="text-[11px] text-zinc-300">Coleta automática 3× ao dia</p>
+        </div>
       </footer>
     </div>
   );
