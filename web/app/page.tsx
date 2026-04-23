@@ -10,7 +10,6 @@ type Product = {
   product_url: string;
   current_price: string | null;
   last_updated: Date | null;
-  variation_7d_pct: string | null;
   image_url: string | null;
   price_history: number[] | null;
 };
@@ -21,16 +20,14 @@ async function getProducts(): Promise<Product[]> {
     return await sql<Product[]>`
       SELECT
         ps.name, ps.category, ps.product_url, ps.image_url,
-        ps.current_price, ps.last_updated, ps.variation_7d_pct,
+        ps.current_price, ps.last_updated,
         hist.data as price_history
       FROM v_products_summary ps
       LEFT JOIN LATERAL (
-        SELECT json_agg(p.price ORDER BY p.collected_at ASC) AS data
-        FROM (
-          SELECT price, collected_at FROM price_history
-          WHERE product_id = ps.id
-          ORDER BY collected_at DESC LIMIT 12
-        ) p
+        SELECT json_agg(price ORDER BY collected_at ASC) AS data
+        FROM price_history
+        WHERE product_id = ps.id
+          AND collected_at >= now() - interval '30 days'
       ) hist ON true
       WHERE ps.is_active = true
       ORDER BY ps.category NULLS LAST, ps.name
