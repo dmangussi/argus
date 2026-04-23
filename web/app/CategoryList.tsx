@@ -433,7 +433,7 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
         <HistoryModal product={historyProduct} onClose={() => setHistoryProduct(null)} />
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Search + controls row */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -464,7 +464,7 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
         </div>
 
         {/* Filter badges */}
-        <div className="grid grid-cols-4 gap-1.5 -mt-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {(Object.keys(FILTER_LABELS) as FilterType[]).map((f) => {
             const isActive = activeFilter === f;
             const styles = FILTER_STYLES[f];
@@ -485,9 +485,12 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
           })}
         </div>
 
+        {/* Divider */}
+        <hr className="border-zinc-200" />
+
         {/* Results count */}
         {query && totalResults > 0 && (
-          <p className="text-xs text-zinc-400 -mt-2">
+          <p className="text-xs text-zinc-400">
             {totalResults} resultado{totalResults !== 1 ? "s" : ""} para{" "}
             <span className="font-medium text-zinc-600">"{query}"</span>
           </p>
