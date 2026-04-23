@@ -11,17 +11,27 @@ function slugify(name: string): string {
     .replace(/[^a-z0-9-]/g, "");
 }
 
+function toTitleCase(s: string): string {
+  return s.replace(/[-_]/g, " ").replace(/\s+/g, " ").trim()
+    .split(" ").map((w) => w ? w[0].toUpperCase() + w.slice(1) : w).join(" ");
+}
+
 function nameFromUrl(product_url: string): string {
   try {
     const url = new URL(product_url);
+
+    // 1. Query param ?search=... (e.g. search pages)
     const search = url.searchParams.get("search");
-    if (search) {
-      return search
-        .replace(/\+/g, " ")
-        .replace(/\s+/g, " ")
-        .trim()
-        .split(" ").map((w) => w ? w[0].toUpperCase() + w.slice(1) : w).join(" ");
-    }
+    if (search) return toTitleCase(search.replace(/\+/g, " "));
+
+    // 2. URL path — last non-numeric segment with length > 3
+    const segments = url.pathname.split("/").filter(Boolean);
+    const slug = [...segments].reverse().find(
+      (s) => !/^\d+$/.test(s) && s.replace(/[-_]/g, "").length > 3
+    );
+    if (slug) return toTitleCase(slug);
+
+    // 3. Fallback: hostname
     return url.hostname.replace(/^www\./, "");
   } catch {
     return product_url;
