@@ -150,7 +150,7 @@ function HistoryModal({ product, onClose }: { product: Product; onClose: () => v
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -368,9 +368,9 @@ function ProductCard({
 
 const FILTER_LABELS: Record<FilterType, string> = {
   all:    "Todos",
-  drop:   "↓ Baixaram",
-  rise:   "↑ Subiram",
-  stable: "→ Estáveis",
+  drop:   "↓ Baixou",
+  rise:   "↑ Subiu",
+  stable: "→ Estável",
 };
 
 const FILTER_STYLES: Record<FilterType, { active: string; inactive: string }> = {
@@ -464,7 +464,7 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
         </div>
 
         {/* Filter badges */}
-        <div className="flex gap-2 -mt-2">
+        <div className="grid grid-cols-4 gap-1.5 -mt-2">
           {(Object.keys(FILTER_LABELS) as FilterType[]).map((f) => {
             const isActive = activeFilter === f;
             const styles = FILTER_STYLES[f];
@@ -472,16 +472,12 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`flex-1 inline-flex justify-center items-center gap-1.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                className={`flex flex-col items-center justify-center py-1.5 rounded-full text-xs font-semibold transition-colors ${
                   isActive ? styles.active : styles.inactive
                 }`}
               >
-                {FILTER_LABELS[f]}
-                <span
-                  className={`text-[10px] font-bold px-1 py-0.5 rounded-full ${
-                    isActive ? "bg-white/20" : "bg-zinc-200 text-zinc-400"
-                  }`}
-                >
+                <span>{FILTER_LABELS[f]}</span>
+                <span className={`text-[10px] font-bold leading-none mt-0.5 ${isActive ? "opacity-70" : "text-zinc-400"}`}>
                   {filterCounts[f]}
                 </span>
               </button>
