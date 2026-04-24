@@ -63,13 +63,15 @@ export default function Loading() {
         </div>
 
         {/* Filter badges skeleton */}
-        <div className="flex gap-2 -mt-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex-1 h-7 bg-zinc-100 rounded-full animate-pulse" />
+            <div key={i} className="h-9 bg-zinc-100 rounded-full animate-pulse" />
           ))}
         </div>
 
-        <div className="space-y-5">
+        <hr className="border-zinc-200" />
+
+        <div className="space-y-4">
           <SkeletonCategory cards={3} />
           <SkeletonCategory cards={2} />
           <SkeletonCategory cards={4} />

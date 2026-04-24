@@ -1,10 +1,13 @@
 import postgres from "postgres";
+import { cookies } from "next/headers";
 import { Eye, Clock, Settings } from "lucide-react";
 import CategoryList from "./CategoryList";
+import CartBadge from "./CartBadge";
 
 export const dynamic = "force-dynamic";
 
 type Product = {
+  id: string;
   name: string;
   category: string | null;
   product_url: string;
@@ -12,16 +15,18 @@ type Product = {
   last_updated: Date | null;
   image_url: string | null;
   price_history: { price: number; date: string }[] | null;
+  in_cart: boolean;
 };
 
-async function getProducts(): Promise<Product[]> {
+async function getProducts(sessionId: string | null): Promise<Product[]> {
   const sql = postgres(process.env.DATABASE_URL!);
   try {
     return await sql<Product[]>`
       SELECT
-        ps.name, ps.category, ps.product_url, ps.image_url,
+        ps.id, ps.name, ps.category, ps.product_url, ps.image_url,
         ps.current_price, ps.last_updated,
-        hist.data as price_history
+        hist.data as price_history,
+        CASE WHEN sli.product_id IS NOT NULL THEN true ELSE false END AS in_cart
       FROM v_products_summary ps
       LEFT JOIN LATERAL (
         SELECT json_agg(json_build_object('price', price, 'date', collected_at) ORDER BY collected_at ASC) AS data
@@ -29,6 +34,9 @@ async function getProducts(): Promise<Product[]> {
         WHERE product_id = ps.id
           AND collected_at >= now() - interval '30 days'
       ) hist ON true
+      LEFT JOIN shopping_lists sl ON sl.session_id = ${sessionId ?? ""}
+      LEFT JOIN shopping_list_items sli
+        ON sli.shopping_list_id = sl.id AND sli.product_id = ps.id
       WHERE ps.is_active = true
       ORDER BY ps.category NULLS LAST, ps.name
     `;
@@ -49,7 +57,8 @@ function relativeTime(date: Date | null): string {
 }
 
 export default async function HomePage() {
-  const products = await getProducts();
+  const sessionId = (await cookies()).get("argus_cart_session")?.value ?? null;
+  const products = await getProducts(sessionId);
 
   const byCategory = products.reduce<Record<string, Product[]>>((acc, p) => {
     const cat = p.category ?? "Outros";
@@ -58,6 +67,8 @@ export default async function HomePage() {
   }, {});
 
   const lastUpdate = products.find((p) => p.last_updated)?.last_updated ?? null;
+  const categoryCount = Object.keys(byCategory).length;
+  const cartProductIds = products.filter((p) => p.in_cart).map((p) => p.id);
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -81,6 +92,7 @@ export default async function HomePage() {
                 {products.length} produto{products.length !== 1 ? "s" : ""} · {relativeTime(lastUpdate)}
               </span>
             </div>
+            <CartBadge initialCount={cartProductIds.length} />
             <a
               href="/admin"
               title="Admin"
@@ -105,7 +117,7 @@ export default async function HomePage() {
             </p>
           </div>
         ) : (
-          <CategoryList byCategory={byCategory} />
+          <CategoryList byCategory={byCategory} initialCartIds={cartProductIds} />
         )}
       </main>
 
@@ -115,7 +127,7 @@ export default async function HomePage() {
           {products.length > 0 && (
             <p className="text-[11px] text-zinc-400">
               {products.length} produto{products.length !== 1 ? "s" : ""} em{" "}
-              {Object.keys(byCategory).length} categori{Object.keys(byCategory).length !== 1 ? "as" : "a"}
+              {categoryCount} categori{categoryCount !== 1 ? "as" : "a"}
             </p>
           )}
           <p className="text-[11px] text-zinc-300">Coleta automática 3× ao dia</p>

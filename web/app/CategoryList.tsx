@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronDown,
@@ -9,12 +9,14 @@ import {
   ExternalLink,
   PackageSearch,
   Search,
+  ShoppingCart,
   X,
 } from "lucide-react";
 
 type PricePoint = { price: number; date: string };
 
 type Product = {
+  id: string;
   name: string;
   category: string | null;
   product_url: string;
@@ -222,10 +224,14 @@ function ProductCard({
   product,
   category,
   onOpenHistory,
+  isInCart,
+  onToggleCart,
 }: {
   product: Product;
   category: string;
   onOpenHistory: () => void;
+  isInCart: boolean;
+  onToggleCart: () => void;
 }) {
   const [nameExpanded, setNameExpanded] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -259,6 +265,12 @@ function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     onOpenHistory();
+  };
+
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggleCart();
   };
 
   return (
@@ -313,19 +325,31 @@ function ProductCard({
           )}
         </div>
 
-        {/* Price + badge */}
-        <div
-          className="flex flex-col items-end gap-1.5 shrink-0 cursor-pointer"
-          onClick={toggleDetails}
-        >
-          {price ? (
-            <span className="text-lg font-bold text-zinc-900 tabular-nums">{price}</span>
-          ) : (
-            <span className="flex items-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
-              Ver <ExternalLink className="w-3 h-3" />
-            </span>
-          )}
-          <VariationBadge pct={effectivePct} />
+        {/* Price + badge + cart */}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <div className="cursor-pointer" onClick={toggleDetails}>
+            {price ? (
+              <span className="text-lg font-bold text-zinc-900 tabular-nums">{price}</span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+                Ver <ExternalLink className="w-3 h-3" />
+              </span>
+            )}
+            <div className="flex justify-end mt-1">
+              <VariationBadge pct={effectivePct} />
+            </div>
+          </div>
+          <button
+            onClick={handleCartClick}
+            title={isInCart ? "Remover da lista" : "Adicionar à lista"}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+              isInCart
+                ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                : "bg-zinc-100 text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600"
+            }`}
+          >
+            <ShoppingCart className="w-3.5 h-3.5" strokeWidth={2} />
+          </button>
         </div>
       </div>
 
@@ -380,11 +404,49 @@ const FILTER_STYLES: Record<FilterType, { active: string; inactive: string }> = 
   stable: { active: "bg-zinc-500 text-white",    inactive: "bg-zinc-100 text-zinc-500 hover:bg-zinc-200" },
 };
 
-export default function CategoryList({ byCategory }: { byCategory: Record<string, Product[]> }) {
+export default function CategoryList({
+  byCategory,
+  initialCartIds,
+}: {
+  byCategory: Record<string, Product[]>;
+  initialCartIds: string[];
+}) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [historyProduct, setHistoryProduct] = useState<Product | null>(null);
+  const [cartIds, setCartIds] = useState<Set<string>>(new Set(initialCartIds));
+
+  useEffect(() => {
+    // Always sync from localStorage — even when empty — so that a purchase
+    // that cleared the cart is reflected even when the router cache serves
+    // stale initialCartIds from a previous render.
+    try {
+      const stored = localStorage.getItem("argus_cart_ids");
+      const ids = new Set<string>(stored ? JSON.parse(stored) : []);
+      setCartIds(ids);
+      window.dispatchEvent(new CustomEvent("cart-update", { detail: { count: ids.size } }));
+    } catch {}
+  }, []);
+
+  function toggleCart(product: Product) {
+    const inCart = cartIds.has(product.id);
+    const newSet = new Set(cartIds);
+    inCart ? newSet.delete(product.id) : newSet.add(product.id);
+
+    setCartIds(newSet);
+    window.dispatchEvent(new CustomEvent("cart-update", { detail: { count: newSet.size } }));
+
+    try {
+      localStorage.setItem("argus_cart_ids", JSON.stringify([...newSet]));
+    } catch {}
+
+    fetch("/api/lista/items", {
+      method: inCart ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: product.id }),
+    });
+  }
 
   const allProducts = Object.values(byCategory).flat();
   const filterCounts: Record<FilterType, number> = {
@@ -485,7 +547,6 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
           })}
         </div>
 
-        {/* Divider */}
         <hr className="border-zinc-200" />
 
         {/* Results count */}
@@ -539,10 +600,12 @@ export default function CategoryList({ byCategory }: { byCategory: Record<string
                 <div className="space-y-2.5">
                   {items.map((p) => (
                     <ProductCard
-                      key={p.name}
+                      key={p.id}
                       product={p}
                       category={category}
                       onOpenHistory={() => setHistoryProduct(p)}
+                      isInCart={cartIds.has(p.id)}
+                      onToggleCart={() => toggleCart(p)}
                     />
                   ))}
                 </div>

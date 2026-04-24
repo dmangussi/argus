@@ -3,11 +3,23 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PREFIXES = ["/login", "/api/auth"];
 
+function withCartSession(response: NextResponse, request: NextRequest): NextResponse {
+  if (!request.cookies.get("argus_cart_session")) {
+    response.cookies.set("argus_cart_session", crypto.randomUUID(), {
+      httpOnly: false,
+      sameSite: "lax",
+      maxAge: 31536000,
+      path: "/",
+    });
+  }
+  return response;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
+    return withCartSession(NextResponse.next(), request);
   }
 
   const session = request.cookies.get("argus_session");
@@ -15,10 +27,10 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
+    return withCartSession(NextResponse.redirect(url), request);
   }
 
-  return NextResponse.next();
+  return withCartSession(NextResponse.next(), request);
 }
 
 export const config = {
