@@ -22,17 +22,17 @@ function fmt(value: number) {
 }
 
 const CATEGORY_BORDERS: Record<string, string> = {
-  "Hortifruti":         "border-l-emerald-300",
-  "Padaria":            "border-l-amber-300",
-  "Açougue":            "border-l-red-300",
-  "Laticínios e Frios": "border-l-sky-300",
-  "Mercearia":          "border-l-orange-300",
-  "Congelados":         "border-l-cyan-300",
-  "Bebidas":            "border-l-blue-300",
-  "Higiene":            "border-l-pink-300",
-  "Limpeza":            "border-l-teal-300",
-  "Pet Shop":           "border-l-purple-300",
-  "Outros":             "border-l-zinc-300",
+  "Hortifruti":         "border-l-emerald-500",
+  "Padaria":            "border-l-yellow-400",
+  "Açougue":            "border-l-red-500",
+  "Laticínios e Frios": "border-l-sky-400",
+  "Mercearia":          "border-l-orange-400",
+  "Congelados":         "border-l-cyan-400",
+  "Bebidas":            "border-l-blue-500",
+  "Higiene":            "border-l-rose-400",
+  "Limpeza":            "border-l-lime-400",
+  "Pet Shop":           "border-l-purple-500",
+  "Outros":             "border-l-zinc-400",
 };
 
 export default function ListaClient({ initialData }: { initialData: InitialData }) {

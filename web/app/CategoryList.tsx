@@ -63,30 +63,30 @@ function Sparkline({ prices }: { prices: number[] }) {
 }
 
 const CATEGORY_BORDERS: Record<string, string> = {
-  "Hortifruti":         "border-l-emerald-300",
-  "Padaria":            "border-l-amber-300",
-  "Açougue":            "border-l-red-300",
-  "Laticínios e Frios": "border-l-sky-300",
-  "Mercearia":          "border-l-orange-300",
-  "Congelados":         "border-l-cyan-300",
-  "Bebidas":            "border-l-blue-300",
-  "Higiene":            "border-l-pink-300",
-  "Limpeza":            "border-l-teal-300",
-  "Pet Shop":           "border-l-purple-300",
-  "Outros":             "border-l-zinc-300",
+  "Hortifruti":         "border-l-emerald-500",
+  "Padaria":            "border-l-yellow-400",
+  "Açougue":            "border-l-red-500",
+  "Laticínios e Frios": "border-l-sky-400",
+  "Mercearia":          "border-l-orange-400",
+  "Congelados":         "border-l-cyan-400",
+  "Bebidas":            "border-l-blue-500",
+  "Higiene":            "border-l-rose-400",
+  "Limpeza":            "border-l-lime-400",
+  "Pet Shop":           "border-l-purple-500",
+  "Outros":             "border-l-zinc-400",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Hortifruti":         "bg-emerald-400",
-  "Padaria":            "bg-amber-400",
-  "Açougue":            "bg-red-400",
+  "Hortifruti":         "bg-emerald-500",
+  "Padaria":            "bg-yellow-400",
+  "Açougue":            "bg-red-500",
   "Laticínios e Frios": "bg-sky-400",
   "Mercearia":          "bg-orange-400",
   "Congelados":         "bg-cyan-400",
-  "Bebidas":            "bg-blue-400",
-  "Higiene":            "bg-pink-400",
-  "Limpeza":            "bg-teal-400",
-  "Pet Shop":           "bg-purple-400",
+  "Bebidas":            "bg-blue-500",
+  "Higiene":            "bg-rose-400",
+  "Limpeza":            "bg-lime-400",
+  "Pet Shop":           "bg-purple-500",
   "Outros":             "bg-zinc-400",
 };
 
