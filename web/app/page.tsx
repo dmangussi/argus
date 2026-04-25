@@ -88,8 +88,8 @@ export default async function HomePage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 bg-zinc-100 rounded-full px-3 py-1.5">
               <Clock className="w-3 h-3 text-zinc-400" />
-              <span className="text-[11px] text-zinc-500 font-medium">
-                {products.length} produto{products.length !== 1 ? "s" : ""} · {relativeTime(lastUpdate)}
+              <span className="text-[11px] text-zinc-500 font-medium whitespace-nowrap" suppressHydrationWarning>
+                {relativeTime(lastUpdate)}
               </span>
             </div>
             <CartBadge initialCount={cartProductIds.length} />
