@@ -43,6 +43,12 @@ def _parse_price(text: str) -> float | None:
 async def _extract_image(page: Page) -> str | None:
     """Return the first product image URL found on the page, or ``None``."""
     try:
+        src = await page.locator("#foto-principal img").first.get_attribute("src", timeout=3_000)
+        if src:
+            return src
+    except Exception:
+        pass
+    try:
         return await page.locator(".imagem img").first.get_attribute("src")
     except Exception as exc:
         log.debug("Imagem não encontrada: %s", exc)
