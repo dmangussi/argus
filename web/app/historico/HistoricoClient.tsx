@@ -55,21 +55,23 @@ function PurchaseCard({ purchase }: { purchase: Purchase }) {
 
   const paid = parseFloat(purchase.total_paid);
   const argus = parseFloat(purchase.total_argus);
-  const date = new Date(purchase.purchase_date + "T12:00:00").toLocaleDateString("pt-BR", {
+  const date = new Date(purchase.purchase_date.slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR", {
     day: "2-digit",
-    month: "short",
+    month: "2-digit",
     year: "numeric",
   });
 
   async function toggleExpand() {
     if (!expanded && !detail) {
+      setExpanded(true);
       setLoadingDetail(true);
       const res = await fetch(`/api/compras/${purchase.id}`);
       const data = await res.json();
       setDetail(data);
       setLoadingDetail(false);
+    } else {
+      setExpanded((v) => !v);
     }
-    setExpanded((v) => !v);
   }
 
   return (
@@ -106,8 +108,22 @@ function PurchaseCard({ purchase }: { purchase: Purchase }) {
       {expanded && (
         <div className="border-t border-zinc-100">
           {loadingDetail ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <div className="animate-pulse">
+              <div className="bg-zinc-50 px-4 py-2 flex gap-4">
+                <div className="h-3 w-24 rounded bg-zinc-200" />
+                <div className="ml-auto h-3 w-10 rounded bg-zinc-200" />
+                <div className="h-3 w-10 rounded bg-zinc-200" />
+              </div>
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="px-4 py-3 flex items-center gap-4 border-t border-zinc-50">
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-36 rounded bg-zinc-100" />
+                    <div className="h-2.5 w-6 rounded bg-zinc-100" />
+                  </div>
+                  <div className="h-3 w-12 rounded bg-zinc-100" />
+                  <div className="h-3 w-12 rounded bg-zinc-100" />
+                </div>
+              ))}
             </div>
           ) : detail ? (
             <table className="w-full text-sm">
@@ -204,8 +220,28 @@ export default function HistoricoClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-zinc-50">
+        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-zinc-100">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-zinc-100 animate-pulse" />
+            <div className="h-4 w-40 rounded-lg bg-zinc-100 animate-pulse" />
+          </div>
+        </header>
+        <main className="max-w-lg mx-auto px-4 py-5 space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-zinc-200 p-4 flex items-center gap-3 animate-pulse">
+              <div className="flex-1 space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <div className="h-3.5 w-28 rounded bg-zinc-100" />
+                  <div className="h-3 w-16 rounded bg-zinc-100" />
+                </div>
+                <div className="h-5 w-24 rounded bg-zinc-100" />
+                <div className="h-3 w-12 rounded bg-zinc-100" />
+              </div>
+              <div className="w-4 h-4 rounded bg-zinc-100 shrink-0" />
+            </div>
+          ))}
+        </main>
       </div>
     );
   }

@@ -6,10 +6,7 @@ function getSessionId(request: Request): string | null {
   return (request as NextRequest).cookies.get("argus_cart_session")?.value ?? null;
 }
 
-export async function GET(request: Request) {
-  const sessionId = getSessionId(request);
-  if (!sessionId) return NextResponse.json([]);
-
+export async function GET(_request: Request) {
   const sql = postgres(process.env.DATABASE_URL!);
   try {
     const purchases = await sql`
@@ -23,7 +20,6 @@ export async function GET(request: Request) {
         COUNT(pi.id)                                        AS item_count
       FROM purchases p
       LEFT JOIN purchase_items pi ON pi.purchase_id = p.id
-      WHERE p.session_id = ${sessionId}
       GROUP BY p.id
       ORDER BY p.purchase_date DESC, p.created_at DESC
     `;
