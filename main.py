@@ -31,9 +31,7 @@ HEADLESS        = os.getenv("PLAYWRIGHT_HEADLESS", "true").lower() == "true"
 CONCURRENCY     = int(os.getenv("SCRAPE_CONCURRENCY", "3"))
 DELAY_MIN       = float(os.getenv("SCRAPE_DELAY_MIN_SEC", "2"))
 DELAY_MAX       = float(os.getenv("SCRAPE_DELAY_MAX_SEC", "6"))
-DROP_THRESHOLD  = float(os.getenv("ALERT_DROP_THRESHOLD", "-5"))
-RISE_THRESHOLD  = float(os.getenv("ALERT_RISE_THRESHOLD", "10"))
-MIN_HISTORY     = int(os.getenv("ALERT_MIN_HISTORY_POINTS", "3"))
+MIN_HISTORY     = int(os.getenv("ALERT_MIN_HISTORY_POINTS", "1"))
 LOG_LEVEL       = os.getenv("LOG_LEVEL", "INFO")
 
 TIMEZONE = "America/Sao_Paulo"
@@ -91,12 +89,7 @@ async def _scrape_product(
         log.info("[img] Imagem salva: %s", product["name"])
 
     history = notify.recent_prices(product["id"])
-    alert = analyze(
-        product, price, history,
-        min_history=MIN_HISTORY,
-        drop_threshold=DROP_THRESHOLD,
-        rise_threshold=RISE_THRESHOLD,
-    )
+    alert = analyze(product, price, history, min_history=MIN_HISTORY)
     return ScrapeOutcome(product_name=product["name"], price=price, alert=alert)
 
 

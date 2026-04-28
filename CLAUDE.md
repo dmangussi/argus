@@ -1,13 +1,13 @@
 # Argus — Project Context
 
-Monitor de preços com alertas quando houver variação relevante (queda ≥ 5% ou alta ≥ 10% vs média dos últimos preços coletados).
+Monitor de preços com alertas por e-mail (via Resend) sempre que houver qualquer variação de preço comparado com o preço coletado anteriormente.
 
 ## Stack
 
 - **Python 3.12** + **uv** para gestão de deps e venv
 - **Playwright** (async, Chromium headless) para scraping
 - **Vercel Postgres** (Neon) — free tier
-- **Resend** para envio de e-mail (3k/mês free) — futuro
+- **Resend** para envio de e-mail (3k/mês free)
 - **Next.js 16** (App Router) — frontend + admin
 - **GitHub Actions** para agendamento do scraper (3x/dia: 06h, 12h, 18h BRT)
 - **Docker Compose** para execução local opcional
@@ -60,6 +60,8 @@ Categorias disponíveis (lista fixa definida em `ProductActions.tsx`):
 | Variável | Descrição |
 |----------|-----------|
 | `DATABASE_URL` | Vercel Postgres — usar `POSTGRES_URL_NON_POOLING` |
+| `RESEND_API_KEY` | API key do Resend (`re_xxx...`) |
+| `ALERT_EMAIL_TO` | Destinatários dos alertas, separados por vírgula |
 
 ### Frontend (`web/.env.local`)
 | Variável | Descrição |
@@ -72,6 +74,8 @@ Categorias disponíveis (lista fixa definida em `ProductActions.tsx`):
 | Secret | Descrição |
 |--------|-----------|
 | `DATABASE_URL` | Vercel Postgres — mesmo valor acima |
+| `RESEND_API_KEY` | API key do Resend |
+| `ALERT_EMAIL_TO` | Destinatários dos alertas, separados por vírgula |
 
 ## Convenções
 

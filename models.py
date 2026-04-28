@@ -23,7 +23,7 @@ class Alert(TypedDict):
 
     product: Product
     new_price: float
-    avg_price: float
+    prev_price: float
     pct: float
     kind: Literal["price_drop", "price_rise"]
 

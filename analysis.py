@@ -10,32 +10,29 @@ def analyze(
     new_price: float,
     history: list[float],
     *,
-    min_history: int = 3,
-    drop_threshold: float = -5.0,
-    rise_threshold: float = 10.0,
+    min_history: int = 1,
 ) -> Alert | None:
-    """Return an Alert if ``new_price`` crosses a threshold versus ``history``.
+    """Return an Alert whenever ``new_price`` differs from the previous collected price.
 
-    Thresholds are injected as keyword arguments so callers (including tests)
-    can override them without touching module-level env vars.
-
-    Returns ``None`` when history is too short, the average is zero,
-    or the variation falls within the normal range.
+    Compares against ``history[0]`` (the most recent price before this scrape).
+    Any negative variation → price_drop; any positive → price_rise.
+    Returns ``None`` when history is too short, the previous price is zero,
+    or the price did not change.
     """
-    if len(history) < min_history or sum(history) == 0:
+    if len(history) < min_history or not history or history[0] == 0:
         return None
-    avg = sum(history) / len(history)
-    pct = (new_price - avg) / avg * 100
-    if pct <= drop_threshold:
+    prev = history[0]
+    pct = (new_price - prev) / prev * 100
+    if pct < 0:
         kind: Alert["kind"] = "price_drop"
-    elif pct >= rise_threshold:
+    elif pct > 0:
         kind = "price_rise"
     else:
         return None
     return Alert(
         product=product,
         new_price=new_price,
-        avg_price=round(avg, 2),
+        prev_price=round(prev, 2),
         pct=round(pct, 2),
         kind=kind,
     )

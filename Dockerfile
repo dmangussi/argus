@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright/python:v1.58.0-jammy
+FROM mcr.microsoft.com/playwright/python:v1.58.0-noble
 
 COPY --from=ghcr.io/astral-sh/uv:0.6 /uv /bin/
 
